@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,6 +9,7 @@ using ServiceStack.Api.OpenApi;
 using ServiceStack.Auth;
 using ServiceStack.Configuration;
 using ServiceStack.Data;
+using WebApp.Auth;
 
 namespace WebApp
 {
@@ -32,31 +34,58 @@ namespace WebApp
 
         public override void Configure(Container container)
         {
+            ConfigureAuth();
+
+            DynamicPlugins.Each(plugin => {
+                Plugins.Add(plugin);
+            });
+            
+            ConfigureOpenApi();
+        }
+        
+        private void ConfigureAuth()
+        {
             var authProviders = new List<IAuthProvider>();
             authProviders.Add(new CredentialsAuthProvider(AppSettings));
             authProviders.Add(new BasicAuthProvider(AppSettings));
+            authProviders.Add(new ApiKeyAuthProvider(AppSettings) { RequireSecureConnection = false });
             
             var privateKeyXml = (AppSettings as OrmLiteAppSettings)?.GetOrCreate("PrivateKeyXml", () => {
                 return RsaUtils.CreatePrivateKeyParams().ToPrivateKeyXml();
             });
             if (!string.IsNullOrWhiteSpace(privateKeyXml))
             {
-                authProviders.Add(new JwtAuthProvider(AppSettings) { PrivateKeyXml = privateKeyXml });
+                authProviders.Add(new JwtAuthProvider(AppSettings) 
+                { 
+                    PrivateKeyXml = privateKeyXml,
+                    RequireSecureConnection = false,
+                    SetBearerTokenOnAuthenticateResponse = true,
+                    IncludeJwtInConvertSessionToTokenResponse = true
+                });
             }
 
-            var authFeature = new AuthFeature(() => new AppUserSession(), authProviders.ToArray());
-            Plugins.Add(authFeature);
+            var authRepository = new OrmLiteAuthRepository(DbFactory);
+            authRepository.InitSchema();
+            authRepository.InitApiKeySchema();
+            Register<IUserAuthRepository>(authRepository);
+            Register<IAuthRepository>(authRepository);
 
-            DynamicPlugins.Each(plugin => {
-                Plugins.Add(plugin);
-            });
-            
+            var authFeature = new AuthFeature(() => new AppUserSession(), authProviders.ToArray())
+            {
+                IncludeRegistrationService = false,
+                IncludeAssignRoleServices = false,
+                DeleteSessionCookiesOnLogout = true,
+                GenerateNewSessionCookiesOnAuthentication = true,
+                SaveUserNamesInLowerCase = true,
+                ValidateUniqueEmails = true,
+                ValidateUniqueUserNames = true
+            };
+            Plugins.Add(authFeature);
+        }
+    
+        private void ConfigureOpenApi()
+        {
             Plugins.Add(new OpenApiFeature());
         }
-    }
-
-    public class AppUserSession: AuthUserSession
-    {
-
     }
 }
