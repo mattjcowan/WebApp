@@ -9,7 +9,7 @@ namespace WebApp.Actions
 {
     public class AspNetStartupActions : IConfigureAction, IConfigureServicesAction
     {
-        public int Priority => 1;
+        public int Priority => 0;
 
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {        

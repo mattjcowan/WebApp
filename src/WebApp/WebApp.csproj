@@ -10,6 +10,12 @@
     <PackageReference Include="ExtCore.WebApplication" Version="4.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+    <PackageReference Include="ServiceStack.Api.OpenApi" Version="5.4.0" />
+    <PackageReference Include="ServiceStack.OrmLite.MySql" Version="5.4.0" />
+    <PackageReference Include="ServiceStack.OrmLite.Postgresql" Version="5.4.0" />
+    <PackageReference Include="ServiceStack.OrmLite.SqLite" Version="5.4.0" />
+    <PackageReference Include="ServiceStack.OrmLite.SqlServer" Version="5.4.0" />
+    <PackageReference Include="ServiceStack.Server" Version="5.4.0" />
   </ItemGroup>
 
 </Project>
