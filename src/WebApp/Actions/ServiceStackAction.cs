@@ -3,6 +3,7 @@ using System.Linq;
 using ExtCore.Infrastructure;
 using ExtCore.Infrastructure.Actions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceStack;
 using ServiceStack.Configuration;

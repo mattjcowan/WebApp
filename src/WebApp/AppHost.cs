@@ -23,6 +23,7 @@ namespace WebApp
                            typeof(AppHost).Assembly)
         {
             HostingEnvironment = hostingEnvironment;
+            HostingEnvironment.ApplicationName = ServiceName;
             DbFactory = dbConnectionFactory;
             AppSettings = appSettings;
             DynamicPlugins = dynamicPlugins?.ToList() ?? new List<IPlugin>();
