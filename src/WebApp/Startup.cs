@@ -31,8 +31,16 @@ namespace WebApp
                 app.UseDeveloperExceptionPage();
             }
 
-            Directory.CreateDirectory(env.WebRootPath);
-            
+            if (string.IsNullOrWhiteSpace(env.WebRootPath))
+            {
+                env.WebRootPath = Path.Combine(env.ContentRootPath, "wwwroot");
+            }
+
+            if (!Directory.Exists(env.WebRootPath))
+            {
+                Directory.CreateDirectory(env.WebRootPath);
+            }
+
             app.UseExtCore();
         }
     }
