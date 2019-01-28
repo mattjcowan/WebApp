@@ -31,7 +31,11 @@ namespace WebApp.Actions
 
         public void Execute(IApplicationBuilder app, IServiceProvider serviceProvider)
         {
-
+            var appHost = app.ApplicationServices.GetService<IAppHost>() as AppHostBase;
+            if (appHost != null)
+            {
+                app.UseServiceStack(appHost);
+            }
         }
     }
 }
