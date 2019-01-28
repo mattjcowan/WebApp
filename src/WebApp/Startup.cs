@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using ExtCore.Infrastructure.Actions;
 using ExtCore.WebApplication;
 using ExtCore.WebApplication.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WebApp
@@ -33,21 +31,9 @@ namespace WebApp
                 app.UseDeveloperExceptionPage();
             }
 
+            Directory.CreateDirectory(env.WebRootPath);
+            
             app.UseExtCore();
-        }
-    }
-
-    public class DefaultServiceAction : IConfigureAction
-    {
-        public int Priority => int.MaxValue;
-
-        public void Execute(IApplicationBuilder app, IServiceProvider serviceProvider)
-        {
-            var appName = app.ApplicationServices.GetRequiredService<IHostingEnvironment>().ApplicationName;
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync($"{appName} (v{typeof(Startup).Assembly.GetName().Version.ToString(4)})");
-            });
         }
     }
 }
