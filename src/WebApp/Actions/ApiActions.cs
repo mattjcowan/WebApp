@@ -19,12 +19,12 @@ namespace WebApp.Actions
         public static void RewriteApiRequests(RewriteContext context)
         {
             var request = context.HttpContext.Request;
-            var path = request.Path.Value;
+            var path = request.Path.Value ?? "";
 
-            if(request.Host.Host.StartsWith("api."))
+            if(request.Host.Host.StartsWith("api.") && 
+                !path.StartsWith("/api"))
             {
-                var pathValue = (request.Path.Value ?? "").Replace("api/", "");
-                request.Path = "/api/" + request.Path.Value.TrimStart('/');
+                request.Path = "/api/" + path.TrimStart('/');
             }
         }
     }
