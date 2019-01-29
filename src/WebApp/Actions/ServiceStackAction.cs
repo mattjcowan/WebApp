@@ -39,4 +39,27 @@ namespace WebApp.Actions
             }
         }
     }
+
+    public class FallbackService: Service
+    {
+        public object Any(Fallback request)
+        {
+            var host = ServiceStackHost.Instance;
+            return new 
+            {
+                ServiceName = host.ServiceName,
+                ApiVersion = host.Config.ApiVersion,
+                StartedAt = host.StartedAt,
+                PathInfo = "/" + (request.PathInfo ?? string.Empty),
+                Host = Request.GetUrlHostName(),
+                RemoteIp = Request.RemoteIp
+            };
+        }
+    }
+
+    [FallbackRoute("/{PathInfo*}")]
+    public class Fallback
+    {
+        public string PathInfo { get; set; }
+    }
 }

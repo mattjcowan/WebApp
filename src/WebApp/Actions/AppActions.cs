@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Rewrite;
 
 namespace WebApp.Actions
 {
-    public class ApiActions : IConfigureAction
+    public class AppActions : IConfigureAction
     {
         // make sure this runs BEFORE the std aspnet actions
         // otherwise there's a risk that static files get rendered
@@ -16,14 +16,15 @@ namespace WebApp.Actions
             app.UseRewriter(new RewriteOptions()
                 .Add(RewriteApiRequests));
         }
+        
         public static void RewriteApiRequests(RewriteContext context)
         {
             var request = context.HttpContext.Request;
             var path = request.Path.Value;
 
-            if(request.Host.Host.StartsWith("api."))
+            if(request.Host.Host.StartsWith("app."))
             {
-                request.Path = "/api/" + request.Path.Value.TrimStart('/');
+                request.Path = "/app/" + request.Path.Value.TrimStart('/');
             }
         }
     }
