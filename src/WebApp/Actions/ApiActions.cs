@@ -23,11 +23,8 @@ namespace WebApp.Actions
 
             if(request.Host.Host.StartsWith("api."))
             {
-                var pathValue = (request.Path.Value ?? "").TrimStart('/');
-                if (!pathValue.StartsWith("api"))
-                {
-                    request.Path = "/api/" + request.Path.Value.TrimStart('/');
-                }
+                var pathValue = (request.Path.Value ?? "").Replace("api/", "");
+                request.Path = "/api/" + request.Path.Value.TrimStart('/');
             }
         }
     }
