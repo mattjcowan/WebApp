@@ -30,7 +30,7 @@ namespace WebApp.Settings
             Actions.DbAction.SetDbConfig(request.Dialect, request.ConnectionString, request.NamedConnection);
         }
 
-        public void Post(RemoveDb request)
+        public void Delete(RemoveDb request)
         {
             if (!ZeroUsersOrIsAdmin()) return;
 
