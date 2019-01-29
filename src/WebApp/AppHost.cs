@@ -76,11 +76,16 @@ namespace WebApp
                     HashAlgorithm = "RS256",
                     RequireSecureConnection = false,
                     SetBearerTokenOnAuthenticateResponse = true,
-                    IncludeJwtInConvertSessionToTokenResponse = true
+                    IncludeJwtInConvertSessionToTokenResponse = true,
+                    ServiceRoutes = new Dictionary<Type, string[]>
+                    {
+                        { typeof(ConvertSessionToTokenService), new[] { "/auth/session-to-token" } },
+                        { typeof(GetAccessTokenService), new[] { "/auth/access-token" } },
+                    }
                 });
             }
 
-            var authRepository = new OrmLiteAuthRepository(DbFactory);
+            var authRepository = new AppAuthRepository(DbFactory);
             authRepository.InitSchema();
             authRepository.InitApiKeySchema();
             Register<IUserAuthRepository>(authRepository);
