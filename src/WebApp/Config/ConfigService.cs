@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Hosting;
 using ServiceStack;
 using ServiceStack.Auth;
@@ -8,7 +8,7 @@ using ServiceStack.OrmLite;
 
 namespace WebApp.Settings
 {
-    public class SettingsService: Service
+    public class ConfigService: Service
     {
         public IApplicationLifetime AppLifetime { get; set; }
         public IAppSettings AppSettings { get; set; }
