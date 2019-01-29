@@ -13,11 +13,14 @@ namespace WebApp.Settings
         public IApplicationLifetime AppLifetime { get; set; }
         public IAppSettings AppSettings { get; set; }
 
-        public Actions.DbConfig Get(GetDb request)
+        public object Get(GetDb request)
         {
             if (!ZeroUsersOrIsAdmin()) return null;
 
-            return Actions.DbAction.GetDbConfig();
+            return new ApiResponse<Actions.DbConfig>
+            {
+                Result = Actions.DbAction.GetDbConfig()
+            };
         }
 
         public void Post(SetDb request)
@@ -84,7 +87,7 @@ namespace WebApp.Settings
     }
 
     [Route("/db", "GET")]
-    public class GetDb: IReturn<Actions.DbConfig>
+    public class GetDb: IReturn<ApiResponse<Actions.DbConfig>>
     {
     }
 
