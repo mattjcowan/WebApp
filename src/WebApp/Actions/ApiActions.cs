@@ -21,7 +21,7 @@ namespace WebApp.Actions
             var request = context.HttpContext.Request;
             var path = request.Path.Value;
 
-            if(request.Host.Host.StartsWith("api."))
+            if(request.Host.Host.StartsWith("api.") && !request.Path.Value.StartsWith("/api"))
             {
                 request.Path = "/api/" + request.Path.Value.TrimStart('/');
             }
