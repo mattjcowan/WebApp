@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using ServiceStack;
 using ServiceStack.Auth;
@@ -35,6 +36,28 @@ namespace WebApp.Settings
             if (!ZeroUsersOrIsAdmin()) return;
 
             Actions.DbAction.ClearDbConfig(request.NamedConnection);
+        }
+
+        public object Get(GetSettingKeys request)
+        {
+            if (!ZeroUsersOrIsAdmin()) return null;
+
+            var keys = AppSettings.GetAllKeys().OrderBy(k => k).ToArray();
+            return new ApiResponse<string[]>
+            {
+                Result = keys
+            };
+        }
+
+
+        public object Get(GetSetting request)
+        {
+            if (!ZeroUsersOrIsAdmin()) return null;
+
+            return new ApiResponse<object>
+            {
+                Result = AppSettings.GetNullableString(request.Key)
+            };
         }
 
         public void Post(SetSetting request)
@@ -116,7 +139,27 @@ namespace WebApp.Settings
         }
     }
 
+    [Route("/config/settings", "GET")]
+    public class GetSettingKeys: IReturn<ApiResponse<string[]>>
+    {
+    }
+
+    [Route("/config/settings/{Key}", "GET")]
+    public class GetSetting: IReturn<ApiResponse<string>>
+    {
+        public string Key { get; set; }
+    }
+
+    public class GetSettingValidator: AbstractValidator<GetSetting>
+    {
+        public GetSettingValidator()
+        {
+            RuleFor(r => r.Key).NotEmpty();
+        }
+    }
+
     [Route("/config/settings", "POST")]
+    [Route("/config/settings/{Key}", "POST")]
     public class SetSetting: IReturnVoid
     {
         public string Key { get; set; }
