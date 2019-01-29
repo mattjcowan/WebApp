@@ -73,6 +73,7 @@ namespace WebApp
                 authProviders.Add(new JwtAuthProvider(AppSettings) 
                 { 
                     PrivateKeyXml = privateKeyXml,
+                    HashAlgorithm = "RS256",
                     RequireSecureConnection = false,
                     SetBearerTokenOnAuthenticateResponse = true,
                     IncludeJwtInConvertSessionToTokenResponse = true
