@@ -9,22 +9,23 @@ namespace WebApp.Actions
     {
         // make sure this runs BEFORE the std aspnet actions
         // otherwise there's a risk that static files get rendered
-        public int Priority => AspNetStartupActions.PRIORITY_FLAG - 1;
+        public int Priority => Priorities.AppActions;
 
         public void Execute(IApplicationBuilder app, IServiceProvider serviceProvider)
         {
             app.UseRewriter(new RewriteOptions()
                 .Add(RewriteApiRequests));
         }
-        
+
         public static void RewriteApiRequests(RewriteContext context)
         {
             var request = context.HttpContext.Request;
-            var path = request.Path.Value;
+            var path = request.Path.Value ?? "";
 
-            if(request.Host.Host.StartsWith("app."))
+            if(request.Host.Host.StartsWith("app.") && 
+                !path.StartsWith("/app"))
             {
-                request.Path = "/app/" + request.Path.Value.TrimStart('/');
+                request.Path = "/app/" + path.TrimStart('/');
             }
         }
     }

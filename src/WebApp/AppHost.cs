@@ -86,6 +86,11 @@ namespace WebApp
                 ValidateUniqueEmails = true,
                 ValidateUniqueUserNames = true
             };
+            
+            authFeature.ServiceRoutes[typeof(AuthenticateService)] =
+                authFeature.ServiceRoutes[typeof(AuthenticateService)].Where(r => 
+                !r.Contains("authenticate")).ToArray();
+                
             Plugins.Add(authFeature);
         }
     

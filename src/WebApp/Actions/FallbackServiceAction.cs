@@ -10,7 +10,7 @@ namespace WebApp.Actions
 {
     public class FallbackServiceAction : IConfigureAction
     {
-        public int Priority => int.MaxValue;
+        public int Priority => Priorities.FallbackServiceAction;
 
         public void Execute(IApplicationBuilder app, IServiceProvider serviceProvider)
         {

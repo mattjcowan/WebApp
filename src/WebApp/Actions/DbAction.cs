@@ -15,7 +15,7 @@ namespace WebApp.Actions
     public class DbAction : IConfigureServicesAction
     {
         private static string DataDir = null;
-        public int Priority => int.MinValue;
+        public int Priority => Priorities.DbAction;
 
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {

@@ -14,7 +14,7 @@ namespace WebApp.Actions
 
     public class ServiceStackAction : IConfigureAction, IConfigureServicesAction
     {
-        public int Priority => 10;
+        public int Priority => Priorities.ServiceStackAction;
 
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {

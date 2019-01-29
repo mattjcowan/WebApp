@@ -9,13 +9,14 @@ namespace WebApp.Actions
     {
         // make sure this runs BEFORE the std aspnet actions
         // otherwise there's a risk that static files get rendered
-        public int Priority => AspNetStartupActions.PRIORITY_FLAG - 1;
+        public int Priority => Priorities.ApiActions;
 
         public void Execute(IApplicationBuilder app, IServiceProvider serviceProvider)
         {
             app.UseRewriter(new RewriteOptions()
                 .Add(RewriteApiRequests));
         }
+        
         public static void RewriteApiRequests(RewriteContext context)
         {
             var request = context.HttpContext.Request;

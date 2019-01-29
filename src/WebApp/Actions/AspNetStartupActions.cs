@@ -9,8 +9,7 @@ namespace WebApp.Actions
 {
     public class AspNetStartupActions : IConfigureAction, IConfigureServicesAction
     {
-        internal static int PRIORITY_FLAG = 0;
-        public int Priority => 0;
+        public int Priority => Priorities.AspNetStartupActions;
 
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {        
