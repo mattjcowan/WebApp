@@ -35,6 +35,11 @@ namespace WebApp
 
         public override void Configure(Container container)
         {
+            SetConfig(new HostConfig
+            {
+                HandlerFactoryPath = "api"
+            });
+
             ConfigureAuth();
 
             DynamicPlugins.Each(plugin => {
