@@ -52,6 +52,7 @@ namespace WebApp.Actions
             }
 
             app.MapWhen(ctx => ctx.Request.Host.Value.StartsWith("app."), builder => {                
+                builder.UseDefaultFiles();
                 builder.UseStaticFiles(new StaticFileOptions
                 {
                     FileProvider = new PhysicalFileProvider(appContentDir)
