@@ -78,7 +78,7 @@ namespace WebApp.Settings
                 }
                 else if (!base.GetSession().HasRole(RoleNames.Admin, base.AuthRepository))
                 {
-                    new RequiredRoleAttribute(RoleNames.Admin).ExecuteAsync(base.Request, base.Response, null).Wait();
+                    RequiredRoleAttribute.AssertRequiredRoles(Request, RoleNames.Admin);
                     return false;
                 }
             }
@@ -86,13 +86,13 @@ namespace WebApp.Settings
         }
     }
 
-    [Route("/db", "GET")]
+    [Route("/config/db", "GET")]
     public class GetDb: IReturn<ApiResponse<Actions.DbConfig>>
     {
     }
 
-    [Route("/db", "POST")]
-    [Route("/db/{NamedConnection}", "POST")]
+    [Route("/config/db", "POST")]
+    [Route("/config/db/{NamedConnection}", "POST")]
     public class SetDb: IReturnVoid
     {
         public string NamedConnection { get; set; }
@@ -100,8 +100,8 @@ namespace WebApp.Settings
         public string ConnectionString { get; set; }
     }
 
-    [Route("/db", "DELETE")]
-    [Route("/db/{NamedConnection}", "DELETE")]
+    [Route("/config/db", "DELETE")]
+    [Route("/config/db/{NamedConnection}", "DELETE")]
     public class RemoveDb: IReturnVoid
     {
         public string NamedConnection { get; set; }
@@ -116,7 +116,7 @@ namespace WebApp.Settings
         }
     }
 
-    [Route("/settings", "POST")]
+    [Route("/config/settings", "POST")]
     public class SetSetting: IReturnVoid
     {
         public string Key { get; set; }
@@ -124,7 +124,7 @@ namespace WebApp.Settings
         public Dictionary<string, string> Pairs { get; set; }
     }
 
-    [Route("/restart", "POST")]
+    [Route("/config/restart", "POST")]
     public class Restart: IReturnVoid
     {
 
