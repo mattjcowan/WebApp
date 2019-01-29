@@ -54,7 +54,16 @@ namespace WebApp
             var authProviders = new List<IAuthProvider>();
             authProviders.Add(new CredentialsAuthProvider(AppSettings));
             authProviders.Add(new BasicAuthProvider(AppSettings));
-            authProviders.Add(new ApiKeyAuthProvider(AppSettings) { RequireSecureConnection = false });
+
+            var apiKeyProvider = new ApiKeyAuthProvider(AppSettings) { 
+                RequireSecureConnection = false,
+                ServiceRoutes = new Dictionary<Type, string[]>
+                {
+                    { typeof(GetApiKeysService), new[] { "/auth/apikeys", "/auth/apikeys/{Environment}" } },
+                    { typeof(RegenerateApiKeysService), new [] { "/auth/apikeys/regenerate", "/auth/apikeys/regenerate/{Environment}" } },
+                }
+            };
+            authProviders.Add(apiKeyProvider);
             
             var privateKeyXml = (AppSettings as OrmLiteAppSettings)?.GetOrCreate("PrivateKeyXml", () => {
                 return RsaUtils.CreatePrivateKeyParams().ToPrivateKeyXml();
@@ -90,8 +99,15 @@ namespace WebApp
             authFeature.ServiceRoutes[typeof(AuthenticateService)] =
                 authFeature.ServiceRoutes[typeof(AuthenticateService)].Where(r => 
                 !r.Contains("authenticate")).ToArray();
-                
+
             Plugins.Add(authFeature);
+
+            var regFeature = new RegistrationFeature
+            {
+                AllowUpdates = false,
+                AtRestPath = "/auth/register"
+            };
+            Plugins.Add(regFeature);
         }
     
         private void ConfigureOpenApi()
