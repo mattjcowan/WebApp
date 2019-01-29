@@ -17,7 +17,7 @@ namespace WebApp.Actions
             var appName = app.ApplicationServices.GetRequiredService<IHostingEnvironment>().ApplicationName;
             app.Run(async (context) =>
             {
-                await context.Response.WriteAsync($"{appName} (v{typeof(Startup).Assembly.GetName().Version.ToString(4)})");
+                await context.Response.WriteAsync($"{appName} (v{typeof(Startup).Assembly.GetName().Version.ToString(4)} at {context.Request.Host.Value})");
             });
         }
     }

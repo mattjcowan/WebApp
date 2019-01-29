@@ -51,11 +51,10 @@ namespace WebApp.Actions
                 ");
             }
 
-            app.MapWhen(ctx => ctx.Request.Host.Host.StartsWith("app."), builder => {                
+            app.MapWhen(ctx => ctx.Request.Host.Value.StartsWith("app."), builder => {                
                 builder.UseStaticFiles(new StaticFileOptions
                 {
-                    FileProvider = new PhysicalFileProvider(appContentDir),
-                    RequestPath = "/app"
+                    FileProvider = new PhysicalFileProvider(appContentDir)
                 });
             });
         }
