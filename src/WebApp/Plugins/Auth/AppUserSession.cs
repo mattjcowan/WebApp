@@ -1,6 +1,6 @@
 using ServiceStack;
 
-namespace WebApp.Auth
+namespace WebApp.Plugins.Auth
 {
     public class AppUserSession: AuthUserSession
     {

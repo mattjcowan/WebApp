@@ -24,16 +24,19 @@ namespace WebApp.Actions
             {
                 DataDir = Path.Combine(serviceProvider.GetRequiredService<IHostingEnvironment>().ContentRootPath, "App_Data");
             }
+            DataDir = Path.GetFullPath(DataDir);
             Directory.CreateDirectory(DataDir);
 
+            Console.WriteLine("Data root path: " + DataDir);
+
             var dbConfig = GetDbConfig() ?? new DbConfig();
-            if (string.IsNullOrWhiteSpace(dbConfig.Dialect) || 
+            if (string.IsNullOrWhiteSpace(dbConfig.Dialect) ||
                 string.IsNullOrWhiteSpace(dbConfig.ConnectionString))
             {
                 dbConfig.Dialect = Environment.GetEnvironmentVariable("DB_DIALECT");
                 dbConfig.ConnectionString = Environment.GetEnvironmentVariable("DB_CONNECTIONSTRING");
             }
-            
+
             var dbFactory = GetDbFactory(dbConfig.Dialect, dbConfig.ConnectionString);
             if (dbConfig.NamedConnections != null)
             {
@@ -54,6 +57,10 @@ namespace WebApp.Actions
                 appSettings.InitSchema();
                 services.AddSingleton<IAppSettings>(appSettings);
             }
+            else
+            {
+              Console.WriteLine("WARN!! You are missing a database connection factory");
+            }
         }
 
         internal static DbConfig GetDbConfig()
@@ -65,7 +72,7 @@ namespace WebApp.Actions
             {
                 return File.ReadAllText(configFile).FromJson<DbConfig>();
             }
-            
+
             return null;
         }
 
@@ -83,9 +90,9 @@ namespace WebApp.Actions
             {
                 if (dbConfig.NamedConnections == null ||
                     dbConfig.NamedConnections.Keys.Count == 0 ||
-                    !dbConfig.NamedConnections.ContainsKey(namedConnection)) 
+                    !dbConfig.NamedConnections.ContainsKey(namedConnection))
                     return; // good to go
-                
+
                 dbConfig.NamedConnections.RemoveKey(namedConnection);
             }
 
@@ -166,27 +173,27 @@ namespace WebApp.Actions
             {
                 if (dialectLowerCase.Contains("2017"))
                 {
-                    dialectProvider = SqlServer2017Dialect.Provider;   
+                    dialectProvider = SqlServer2017Dialect.Provider;
                 }
                 else if (dialectLowerCase.Contains("2016"))
                 {
-                    dialectProvider = SqlServer2016Dialect.Provider;                       
+                    dialectProvider = SqlServer2016Dialect.Provider;
                 }
                 else if (dialectLowerCase.Contains("2014"))
                 {
-                    dialectProvider = SqlServer2014Dialect.Provider;                       
+                    dialectProvider = SqlServer2014Dialect.Provider;
                 }
                 else if (dialectLowerCase.Contains("2012"))
                 {
-                    dialectProvider = SqlServer2012Dialect.Provider;                       
+                    dialectProvider = SqlServer2012Dialect.Provider;
                 }
                 else if (dialectLowerCase.Contains("2008"))
                 {
-                    dialectProvider = SqlServer2012Dialect.Provider;                       
+                    dialectProvider = SqlServer2012Dialect.Provider;
                 }
                 else
                 {
-                    dialectProvider = SqlServerDialect.Provider;        
+                    dialectProvider = SqlServerDialect.Provider;
                 }
             }
 

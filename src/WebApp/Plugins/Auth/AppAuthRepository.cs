@@ -4,7 +4,7 @@ using ServiceStack.Configuration;
 using ServiceStack.Data;
 using ServiceStack.OrmLite;
 
-namespace WebApp.Auth
+namespace WebApp.Plugins.Auth
 {
     public class AppAuthRepository : OrmLiteAuthRepository
     {
@@ -26,7 +26,7 @@ namespace WebApp.Auth
                 {
                     db.Update<UserAuth>(new { LastLoginAttempt = DateTime.UtcNow, InvalidLoginAttempts = 0 }, u => u.Id == userAuthId);
                 }
-                
+
                 if (!userAuth.Roles.Contains(RoleNames.Admin))
                 {
                     MakeAdminIfSingleUser(userAuth);
@@ -47,7 +47,7 @@ namespace WebApp.Auth
         }
 
         private void MakeAdminIfSingleUser(IUserAuth userAuth)
-        {            
+        {
             long userCount = 0;
             using(var db = base.OpenDbConnection())
             {

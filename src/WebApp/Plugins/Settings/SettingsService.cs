@@ -7,9 +7,9 @@ using ServiceStack.Configuration;
 using ServiceStack.FluentValidation;
 using ServiceStack.OrmLite;
 
-namespace WebApp.Settings
+namespace WebApp.Plugins.Settings
 {
-    public class ConfigService: Service
+    public class SettingsService: Service
     {
         public IApplicationLifetime AppLifetime { get; set; }
         public IAppSettings AppSettings { get; set; }
@@ -66,7 +66,7 @@ namespace WebApp.Settings
 
             if (!string.IsNullOrWhiteSpace(request.Key))
             {
-                AppSettings?.Set(request.Key, request.Value);            
+                AppSettings?.Set(request.Key, request.Value);
             }
 
             if (request.Pairs != null)
@@ -74,7 +74,7 @@ namespace WebApp.Settings
                 request.Pairs.Each(pair => {
                     if (!string.IsNullOrWhiteSpace(pair.Key))
                     {
-                        AppSettings?.Set(pair.Key, pair.Value);            
+                        AppSettings?.Set(pair.Key, pair.Value);
                     }
                 });
             }

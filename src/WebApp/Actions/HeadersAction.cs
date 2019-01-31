@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using ExtCore.Infrastructure.Actions;
 using Microsoft.AspNetCore.Builder;
@@ -9,9 +9,9 @@ using Microsoft.Extensions.FileProviders;
 
 namespace WebApp.Actions
 {
-    public class AspNetStartupActions : IConfigureAction, IConfigureServicesAction
+    public class HeadersAction : IConfigureAction, IConfigureServicesAction
     {
-        public int Priority => Priorities.AspNetStartupActions;
+        public int Priority => Priorities.HeadersAction;
 
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {        
@@ -39,25 +39,7 @@ namespace WebApp.Actions
             }
 
             app.UseCors("CorsPolicy");
-
-            app.UseDefaultFiles();
-            app.UseStaticFiles();
-            
-            var appContentDir = Path.Combine(env.ContentRootPath, "wwwroot", "app");
-            Directory.CreateDirectory(appContentDir);
-            if (!File.Exists(Path.Combine(appContentDir, "index.html"))) {
-                File.WriteAllText(Path.Combine(appContentDir, "index.html"), @"
-<html><body>Welcome to app</body></html>                
-                ");
-            }
-
-            app.MapWhen(ctx => ctx.Request.Host.Value.StartsWith("app."), builder => {                
-                builder.UseDefaultFiles();
-                builder.UseStaticFiles(new StaticFileOptions
-                {
-                    FileProvider = new PhysicalFileProvider(appContentDir)
-                });
-            });
         }
     }
 }
+

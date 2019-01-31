@@ -1,61 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Funq;
-using Microsoft.AspNetCore.Hosting;
 using ServiceStack;
-using ServiceStack.Api.OpenApi;
 using ServiceStack.Auth;
 using ServiceStack.Configuration;
 using ServiceStack.Data;
-using WebApp.Auth;
 
-namespace WebApp
+namespace WebApp.Plugins.Auth
 {
-    public class AppHost : AppHostBase
+    public class AuthPlugin : IPlugin, ICanPreRegister
     {
-        public AppHost(IHostingEnvironment hostingEnvironment, 
-                       IDbConnectionFactory dbConnectionFactory,
-                       IAppSettings appSettings,
-                       IEnumerable<IPlugin> dynamicPlugins) : base(
-                           appSettings.GetNullableString("ServiceName") ?? hostingEnvironment.ApplicationName, 
-                           typeof(AppHost).Assembly)
+        public int PreRegistrationPriority => -1;
+
+        public void PreRegister(AppHostBase appHost, Container container)
         {
-            HostingEnvironment = hostingEnvironment;
-            HostingEnvironment.ApplicationName = ServiceName;
-            DbFactory = dbConnectionFactory;
-            AppSettings = appSettings;
-            DynamicPlugins = dynamicPlugins?.ToList() ?? new List<IPlugin>();
-        }
+            var dbFactory = container.TryResolve<IDbConnectionFactory>();
+            var appSettings = container.TryResolve<IAppSettings>();
 
-        public IHostingEnvironment HostingEnvironment { get; }
-        public IDbConnectionFactory DbFactory { get; }
-        public List<IPlugin> DynamicPlugins { get; }
+            if (dbFactory == null || appSettings == null)
+              return; // missing required dependencies
 
-        public override void Configure(Container container)
-        {
-            SetConfig(new HostConfig
-            {
-                HandlerFactoryPath = "api"
-            });
-
-            ConfigureAuth();
-
-            DynamicPlugins.Each(plugin => {
-                Plugins.Add(plugin);
-            });
-            
-            ConfigureOpenApi();
-        }
-        
-        private void ConfigureAuth()
-        {
             var authProviders = new List<IAuthProvider>();
-            authProviders.Add(new CredentialsAuthProvider(AppSettings));
-            authProviders.Add(new BasicAuthProvider(AppSettings));
+            authProviders.Add(new CredentialsAuthProvider(appSettings));
+            authProviders.Add(new BasicAuthProvider(appSettings));
 
-            var apiKeyProvider = new ApiKeyAuthProvider(AppSettings) { 
+            var apiKeyProvider = new ApiKeyAuthProvider(appSettings) {
                 RequireSecureConnection = false,
                 ServiceRoutes = new Dictionary<Type, string[]>
                 {
@@ -64,14 +34,14 @@ namespace WebApp
                 }
             };
             authProviders.Add(apiKeyProvider);
-            
-            var privateKeyXml = (AppSettings as OrmLiteAppSettings)?.GetOrCreate("PrivateKeyXml", () => {
+
+            var privateKeyXml = (appSettings as OrmLiteAppSettings)?.GetOrCreate("PrivateKeyXml", () => {
                 return RsaUtils.CreatePrivateKeyParams().ToPrivateKeyXml();
             });
             if (!string.IsNullOrWhiteSpace(privateKeyXml))
             {
-                authProviders.Add(new JwtAuthProvider(AppSettings) 
-                { 
+                authProviders.Add(new JwtAuthProvider(appSettings)
+                {
                     PrivateKeyXml = privateKeyXml,
                     HashAlgorithm = "RS256",
                     RequireSecureConnection = false,
@@ -85,11 +55,11 @@ namespace WebApp
                 });
             }
 
-            var authRepository = new AppAuthRepository(DbFactory);
+            var authRepository = new AppAuthRepository(dbFactory);
             authRepository.InitSchema();
             authRepository.InitApiKeySchema();
-            Register<IUserAuthRepository>(authRepository);
-            Register<IAuthRepository>(authRepository);
+            appHost.Register<IUserAuthRepository>(authRepository);
+            appHost.Register<IAuthRepository>(authRepository);
 
             var authFeature = new AuthFeature(() => new AppUserSession(), authProviders.ToArray())
             {
@@ -101,24 +71,23 @@ namespace WebApp
                 ValidateUniqueEmails = true,
                 ValidateUniqueUserNames = true
             };
-            
+
             authFeature.ServiceRoutes[typeof(AuthenticateService)] =
-                authFeature.ServiceRoutes[typeof(AuthenticateService)].Where(r => 
+                authFeature.ServiceRoutes[typeof(AuthenticateService)].Where(r =>
                 !r.Contains("authenticate")).ToArray();
 
-            Plugins.Add(authFeature);
+            appHost.Plugins.Add(authFeature);
 
             var regFeature = new RegistrationFeature
             {
                 AllowUpdates = false,
                 AtRestPath = "/auth/register"
             };
-            Plugins.Add(regFeature);
+            appHost.Plugins.Add(regFeature);
         }
-    
-        private void ConfigureOpenApi()
+
+        public void Register(IAppHost appHost)
         {
-            Plugins.Add(new OpenApiFeature());
         }
     }
 }

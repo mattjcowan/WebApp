@@ -1,0 +1,52 @@
+{
+  "name": "webapp",
+  "version": "1.0.0",
+  "description": "WebApp",
+  "author": "mattjcowan",
+  "private": true,
+  "scripts": {
+    "public:dev": "nuxt -c ./src-html/public/nuxt.config.js -p 3000",
+    "public:build": "nuxt build -c ./src-html/public/nuxt.config.js",
+    "public:start": "nuxt start -c ./src-html/public/nuxt.config.js -p 3000",
+    "public:generate": "nuxt generate -c ./src-html/public/nuxt.config.js",
+    "public:lint": "eslint --fix --ext .js,.vue --ignore-path .gitignore ./src-html/public/",
+    "app:dev": "nuxt -c ./src-html/app/nuxt.config.js -p 4000",
+    "app:lint": "eslint --fix --ext .js,.vue --ignore-path .gitignore ./src-html/app/",
+    "app:generate": "nuxt generate -c ./src-html/app/nuxt.config.js",
+    "server:run": "cd src/WebApp && DATA_DIR=../../.tmp DB_DIALECT=sqlite DB_CONNECTIONSTRING=~data/WebApp.sqlite dotnet run",
+    "server:watch": "cd src/WebApp && DATA_DIR=../../.tmp DB_DIALECT=sqlite DB_CONNECTIONSTRING=~data/WebApp.sqlite dotnet watch run",
+    "server:publish": "cd src/WebApp && dotnet publish -c release -o ../../dist",
+    "dev": "npm-run-all -p *:dev",
+    "generate": "rimraf dist/wwwroot/* && npm-run-all -p *:generate",
+    "publish": "rimraf dist/* && npm run server:publish && npm run generate",
+    "lint": "npm-run-all -p *:lint",
+    "precommit": "npm run lint",
+    "dist": "cd dist/ && DATA_DIR=../.tmp DB_DIALECT=sqlite DB_CONNECTIONSTRING=~data/WebApp.sqlite dotnet WebApp.dll"
+  },
+  "dependencies": {
+    "@nuxtjs/axios": "^5.3.6",
+    "@nuxtjs/pwa": "^2.6.0",
+    "bootstrap": "^4.1.3",
+    "bootstrap-vue": "^2.0.0-rc.11",
+    "cross-env": "^5.2.0",
+    "nuxt": "2.4.2"
+  },
+  "devDependencies": {
+    "@nuxtjs/eslint-config": "^0.0.1",
+    "babel-eslint": "^8.2.1",
+    "copyfiles": "2.1.0",
+    "eslint": "^5.0.1",
+    "eslint-config-standard": ">=12.0.0",
+    "eslint-loader": "^2.0.0",
+    "eslint-plugin-import": ">=2.14.0",
+    "eslint-plugin-jest": ">=21.24.1",
+    "eslint-plugin-node": ">=7.0.1",
+    "eslint-plugin-promise": ">=4.0.1",
+    "eslint-plugin-standard": ">=4.0.0",
+    "eslint-plugin-vue": "^5.0.0",
+    "movefiles": "1.0.1",
+    "nodemon": "^1.18.9",
+    "npm-run-all": "4.1.5",
+    "rimraf": "2.6.3"
+  }
+}

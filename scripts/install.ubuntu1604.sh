@@ -156,6 +156,7 @@ server {
     server_name $publicip;
     include snippets/self-signed.conf;
     include snippets/ssl-params.conf;
+
     location / {
         proxy_pass http://localhost:5000;
         proxy_http_version 1.1;
