@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace WebApp
 {
-    public class Program
+  public class Program
   {
     public static void Main(string[] args)
     {
@@ -20,6 +20,7 @@ namespace WebApp
 
     public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
       WebHost.CreateDefaultBuilder(args)
+      .UseWebRoot(Environment.GetEnvironmentVariable("WEB_DIR") ?? "wwwroot")
       .UseStartup<Startup>();
   }
 }

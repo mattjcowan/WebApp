@@ -1,12 +1,17 @@
 #!/bin/bash
+# dir=$(pwd)
+# cdir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+# cd $cdir
 
 # -------------------------
 # INSTRUCTIONS
 # -------------------------
-# This script will install the WebApp onto your barebones
-# linux 16.04 virtual machine.
+# This script will install the WebApp onto a barebones ubuntu 16.04 machine.
+#
 # Run using:
 # cd ~/ && curl -s https://raw.githubusercontent.com/mattjcowan/WebApp/develop/scripts/install.ubuntu1604.sh -o install.webapp.sh && chmod +x install.webapp.sh && ./install.webapp.sh && rm -f install.webapp.sh
+# OR
+# repo=mattjcowan/WebApp && mkdir -p /home/apps/$repo && cd /home/apps/$repo && git clone -b master https://github.com/$repo . && ./dist/install.ubuntu1604.sh
 
 APP_NAME=WebApp
 DEPLOY_DIR=/var/www/webapp
@@ -40,12 +45,14 @@ sudo apt-get update
 # sudo apt-get autoremove
 sudo apt-get install unattended-upgrades -y
 
+if [ ! -f /etc/apt/apt.conf.d/20auto-upgrades ]; then
 cat >/etc/apt/apt.conf.d/20auto-upgrades <<EOL
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Download-Upgradeable-Packages "1";
 APT::Periodic::AutocleanInterval "3";
 APT::Periodic::Unattended-Upgrade "1";
 EOL
+fi
 
 # -------------------------
 # Get Public IP

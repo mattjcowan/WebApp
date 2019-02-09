@@ -5,6 +5,8 @@
 *.sln.docstates
 App_Data/
 .vscode/
+*.sqlite
+dist/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

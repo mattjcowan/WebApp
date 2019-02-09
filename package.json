@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "publish:ubuntu": "rm -Rf ./dist/ && dotnet publish -c Release -o ../../dist/bin src/WebApp/WebApp.csproj -r ubuntu.16.04-x64 && npm install && cp -r ./node_modules ./dist/bin/",
+    "publish:osx": "rm -Rf ./dist/ && dotnet publish -c Release -o ../../dist/bin src/WebApp/WebApp.csproj -r osx.10.13-x64 && npm install && cp -r ./node_modules ./dist/bin/",
+    "dist": "npm run publish:osx && cd dist/bin/ && dotnet WebApp.dll"
   },
   "keywords": [],
   "author": "",
