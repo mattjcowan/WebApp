@@ -3,30 +3,33 @@
 # -------------------------
 # INSTRUCTIONS
 # -------------------------
-# Make sure to export your servicestack license to make it available to this script
-# export SERVICESTACK_LICENSE=0000-.....
-#
+# This script will install the WebApp onto your barebones
+# linux 16.04 virtual machine.
+# Run using:
+# cd ~/ && curl -s https://raw.githubusercontent.com/mattjcowan/WebApp/develop/scripts/install.ubuntu1604.sh -o install.webapp.sh && chmod +x install.webapp.sh && ./install.webapp.sh && rm -f install.webapp.sh
 
 APP_NAME=WebApp
 DEPLOY_DIR=/var/www/webapp
+BIN_DIR=$DEPLOY_DIR/bin
 WEB_DIR=$DEPLOY_DIR/web
 DATA_DIR=$DEPLOY_DIR/data
-DB_DIALECT=sqlite
-DB_CONNECTIONSTRING="~data/WebApp.sqlite"
+PLUGINS_DIR=$DEPLOY_DIR/plugins
 
 GITHUB_REPO_NAME=mattjcowan/WebApp
 GITHUB_REPO_URL=https://github.com/$GITHUB_REPO_NAME
-SCRIPT_DIR=/home/apps
-LOCAL_DIR=$SCRIPT_DIR/$GITHUB_REPO_NAME
+SCRIPTS_DIR=/home/apps
+LOCAL_DIR=$SCRIPTS_DIR/$GITHUB_REPO_NAME
 
 CDN_HOSTS="https://ssl.google-analytics.com https://fonts.googleapis.com https://cdn.jsdelivr.net https://maxcdn.bootstrapcdn.com https://code.jquery.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com"
 
 mkdir -p $DEPLOY_DIR
-mkdir -p $DATA_DIR
+mkdir -p $BIN_DIR
 mkdir -p $WEB_DIR
-mkdir -p $SCRIPT_DIR
+mkdir -p $DATA_DIR
+mkdir -p $PLUGINS_DIR
+mkdir -p $SCRIPTS_DIR
 
-cd $SCRIPT_DIR
+cd $SCRIPTS_DIR
 
 # -------------------------
 # Install Unattended Upgrades
@@ -55,8 +58,7 @@ publicip=$(curl -4 icanhazip.com)
 # Install Environment Variables
 # -------------------------
 
-echo "DOTNET_CLI_HOME=\"/tmp\"" >> /etc/environment
-echo "SERVICESTACK_LICENSE=\"$SERVICESTACK_LICENSE\"" >> /etc/environment
+grep -qF "DOTNET_CLI_HOME" "/etc/environment"  || echo "DOTNET_CLI_HOME=\"/tmp\"" | sudo tee --append "/etc/environment"
 source /etc/environment
 export `cat /etc/environment`
 
@@ -76,7 +78,6 @@ sudo apt-get install python-pip -y
 # Install Node.JS
 # -------------------------
 
-# curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
 curl -sL https://deb.nodesource.com/setup_10.x | sudo bash -
 sudo apt-get update
 sudo apt-get install nodejs -y
@@ -118,13 +119,18 @@ sudo systemctl restart nginx
 # create self-signed cert (valid for more than 5 years, why not), because we are running
 # dhparam, this will take a while!!
 publicip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
-sudo openssl req -x509 -nodes -days 2000 -newkey rsa:4096 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj /C=US/ST=Illinois/L=Chicago/O=Startup/CN=$publicip
-sudo openssl dhparam -dsaparam -out /etc/ssl/certs/dhparam.pem 4096 > /dev/null 2>&1
+
+[ -f /etc/ssl/private/nginx-selfsigned.key ] || sudo openssl req -x509 -nodes -days 2000 -newkey rsa:4096 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj /C=US/ST=Illinois/L=Chicago/O=Startup/CN=$publicip
+[ -f /etc/ssl/certs/dhparam.pem ] || sudo openssl dhparam -dsaparam -out /etc/ssl/certs/dhparam.pem 4096 > /dev/null 2>&1
+
+if [ ! -f /etc/nginx/snippets/self-signed.conf ]; then
 cat >/etc/nginx/snippets/self-signed.conf <<EOL
 ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
 ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
 EOL
+fi
 
+if [ ! -f /etc/nginx/snippets/ssl-params.conf ]; then
 cat >/etc/nginx/snippets/ssl-params.conf <<EOL
 # from https://cipherli.st/ and https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
 ssl_protocols TLSv1.2;
@@ -142,8 +148,10 @@ add_header X-Frame-Options DENY;
 add_header X-Content-Type-Options nosniff;
 ssl_dhparam /etc/ssl/certs/dhparam.pem;
 EOL
+fi
 
 # the following will direct all traffic on the VM to this site
+if [ ! -f /etc/nginx/sites-available/default ]; then
 cat >/etc/nginx/sites-available/default <<EOL
 server {
     listen 80 default_server;
@@ -194,6 +202,7 @@ server {
     }
 }
 EOL
+fi
 
 # -------------------------
 # Install UFW
@@ -220,19 +229,23 @@ else
     git pull
 fi
 
+cd $LOCAL_DIR
+npm install
 cd $LOCAL_DIR/src/WebApp
-dotnet publish -c release -o $SCRIPT_DIR/$GITHUB_REPO_NAME/dist
-cp -rv $SCRIPT_DIR/$GITHUB_REPO_NAME/dist/* $WEB_DIR
+dotnet publish -c release -o $SCRIPTS_DIR/$GITHUB_REPO_NAME/dist
+cp -rv $SCRIPTS_DIR/$GITHUB_REPO_NAME/dist/* $BIN_DIR
+cp -rv $LOCAL_DIR/node_modules/* $BIN_DIR/node_modules
 sudo chown -R www-data:www-data $DEPLOY_DIR/
 sudo chmod -R 755 $DEPLOY_DIR/
 
 # create system.d service
+if [ ! -f /etc/systemd/system/webapp.service ]; then
 cat >/etc/systemd/system/webapp.service <<EOL
 [Unit]
 Description=WebApp Service
 [Service]
-WorkingDirectory=$WEB_DIR
-ExecStart=/usr/bin/dotnet $WEB_DIR/WebApp.dll
+WorkingDirectory=$BIN_DIR
+ExecStart=/usr/bin/dotnet $BIN_DIR/WebApp.dll
 Restart=always
 RestartSec=10
 SyslogIdentifier=dotnet-webapp
@@ -240,35 +253,38 @@ User=www-data
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 Environment=DATA_DIR=$DATA_DIR
-Environment=DB_DIALECT=$DB_DIALECT
-Environment=DB_CONNECTIONSTRING=$DB_CONNECTIONSTRING
+Environment=BIN_DIR=$BIN_DIR
 Environment=WEB_DIR=$WEB_DIR
+Environment=PLUGINS_DIR=$PLUGINS_DIR
 [Install]
 WantedBy=multi-user.target
 EOL
+fi
 
-cat >$SCRIPT_DIR/webapp.refresh.sh <<EOL
+cat >$SCRIPTS_DIR/webapp.refresh.sh <<EOL
 cd $LOCAL_DIR
 changed=0
 git remote update && git status -uno | grep -q 'Your branch is behind' && changed=1
 if [ \$changed = 1 ]; then
     git pull
+    npm install
     cd src/WebApp
-    dotnet publish -c release -o $SCRIPT_DIR/$GITHUB_REPO_NAME/dist
-    cp -rv $SCRIPT_DIR/$GITHUB_REPO_NAME/dist/* $WEB_DIR
+    dotnet publish -c release -o $SCRIPTS_DIR/$GITHUB_REPO_NAME/dist
+    cp -rv $SCRIPTS_DIR/$GITHUB_REPO_NAME/dist/* $BIN_DIR
+    cp -rv $LOCAL_DIR/node_modules/* $BIN_DIR/node_modules
     sudo chown -R www-data:www-data $DEPLOY_DIR/
     sudo chmod -R 755 $DEPLOY_DIR/
-    systemctl try-restart webapp.service
+    sudo systemctl try-restart webapp.service
     echo "Updated successfully";
 else
     echo "Up to date"
 fi
 EOL
 
-chmod +x $SCRIPT_DIR/webapp.refresh.sh
+chmod +x $SCRIPTS_DIR/webapp.refresh.sh
 
-cat >/etc/cron.d/refresh_webapp_every_minute <<EOL
-* * * * * root /bin/sh $SCRIPT_DIR/webapp.refresh.sh > $SCRIPT_DIR/webapp.refresh.log 2>&1
+cat >/etc/cron.d/refresh_webapp_five_minute <<EOL
+5 * * * * root /bin/sh $SCRIPTS_DIR/webapp.refresh.sh > $SCRIPTS_DIR/webapp.refresh.log 2>&1
 EOL
 
 sudo systemctl enable webapp.service
@@ -280,5 +296,4 @@ sudo systemctl start webapp.service
 
 sudo service webapp restart
 sudo service nginx restart
-sudo reboot
-
+# sudo reboot
